@@ -1,846 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Manager API Inspector v3</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#070c18;
-  --surface:#0d1526;
-  --surface2:#111d36;
-  --surface3:#162040;
-  --border:#1e2e52;
-  --border2:#253660;
-  --text:#ddeaff;
-  --muted:#6a82aa;
-  --dim:#3d5280;
-  --accent:#4a90ff;
-  --accent2:#7ab8ff;
-  --green:#3dffa0;
-  --green2:#00c96a;
-  --amber:#ffb940;
-  --red:#ff5757;
-  --purple:#a78bfa;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Syne',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,144,255,.12) 0%,transparent 70%),
-    radial-gradient(ellipse 40% 30% at 90% 80%,rgba(167,139,250,.06) 0%,transparent 60%);}
-.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager.io Services</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-/* topbar */
-.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;
-  background:rgba(13,21,38,.97);border-bottom:1px solid var(--border);flex-shrink:0;}
-.logo{font-size:15px;font-weight:800;letter-spacing:-.02em;
-  background:linear-gradient(135deg,var(--accent2),var(--purple));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;}
-.topbar-sub{font-size:11px;color:var(--muted);border-left:1px solid var(--border);padding-left:12px;font-family:var(--mono)}
-.topbar-badge{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--green);
-  background:rgba(61,255,160,.1);border:1px solid rgba(61,255,160,.2);border-radius:5px;padding:3px 8px;}
-.clock{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:8px}
-
-/* input bar */
-.inputbar{display:flex;align-items:center;gap:7px;padding:10px 18px;
-  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.prefix-badge{font-family:var(--mono);font-size:12px;color:var(--muted);
-  background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;white-space:nowrap;}
-.endpoint-wrap{flex:1;min-width:140px}
-.endpoint-wrap input{width:100%;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);
-  border-radius:7px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;}
-.endpoint-wrap input:focus{border-color:var(--accent)}
-.pagesize-wrap{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap;
-  background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:0 10px;}
-.pagesize-wrap span{font-size:11px}
-.pagesize-wrap input{width:52px;padding:8px 4px;text-align:center;background:transparent;border:none;
-  border-left:1px solid var(--border);margin-left:5px;padding-left:8px;
-  color:var(--text);font-family:var(--mono);font-size:13px;outline:none;}
-.btn{border:none;border-radius:7px;padding:8px 14px;font-family:var(--sans);font-size:13px;font-weight:600;
-  cursor:pointer;transition:all .16s;white-space:nowrap;}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:none}
-.btn-load{background:linear-gradient(135deg,#2563eb,#4a90ff);color:#fff}
-.btn-load:hover{box-shadow:0 4px 18px rgba(74,144,255,.4)}
-.btn-copy{background:var(--surface3);color:var(--text);border:1px solid var(--border2)}
-.btn-clear{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
-.btn-schema{background:var(--surface3);color:var(--purple);border:1px solid var(--border2)}
-
-/* total bar - NEW */
-.totalbar{display:flex;align-items:center;gap:10px;padding:6px 18px;
-  background:rgba(61,255,160,.04);border-bottom:1px solid rgba(61,255,160,.1);
-  flex-shrink:0;font-size:12px;font-family:var(--mono);}
-.total-label{color:var(--dim)}
-.total-value{color:var(--green);font-weight:600}
-.total-pager{display:flex;align-items:center;gap:6px;margin-left:auto}
-.total-pager span{color:var(--muted);font-size:11px}
-.pager-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:5px;
-  color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 9px;cursor:pointer;transition:all .14s;}
-.pager-btn:hover{background:var(--surface3);border-color:var(--accent)}
-.pager-btn:disabled{opacity:.3;cursor:not-allowed}
-.page-indicator{color:var(--accent2);font-size:11px;min-width:60px;text-align:center}
-
-/* quick bar */
-.quickbar{padding:8px 18px;background:var(--surface);border-bottom:1px solid var(--border);
-  flex-shrink:0;display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
-.ql{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;
-  margin-right:2px;white-space:nowrap}
-.qbtn{padding:5px 10px;font-size:11px;font-family:var(--mono);font-weight:600;
-  border:none;border-radius:6px;cursor:pointer;transition:all .14s;white-space:nowrap;}
-.qbtn:hover{transform:translateY(-1px)}
-.q-l{background:rgba(74,144,255,.12);color:var(--accent2)}
-.q-l:hover{background:rgba(74,144,255,.22)}
-.q-r{background:rgba(61,255,160,.1);color:var(--green)}
-.q-r:hover{background:rgba(61,255,160,.2)}
-.q-s{background:rgba(255,185,64,.1);color:var(--amber)}
-.q-s:hover{background:rgba(255,185,64,.2)}
-
-/* stats */
-.statsbar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
-.stat{flex:1;padding:9px 14px;border-right:1px solid var(--border)}
-.stat:last-child{border-right:none}
-.stat-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
-.stat-value{font-size:17px;font-weight:800;font-family:var(--mono)}
-.sv-idle{color:var(--dim)}.sv-ok{color:var(--green)}.sv-err{color:var(--red)}
-.sv-load{color:var(--amber);animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-/* viewer */
-.viewer{display:grid;grid-template-columns:270px 1fr;flex:1;overflow:hidden}
-
-/* sidebar */
-.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-head{padding:9px 12px;border-bottom:1px solid var(--border);
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--dim);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.path-count{font-family:var(--mono);color:var(--accent2);font-size:11px;font-weight:600;letter-spacing:0;text-transform:none}
-.sidebar-search{padding:7px 9px;border-bottom:1px solid var(--border);flex-shrink:0}
-.sidebar-search input{width:100%;padding:6px 9px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;}
-.sidebar-search input::placeholder{color:var(--dim)}
-.path-list{flex:1;overflow-y:auto;padding:7px}
-.path-list::-webkit-scrollbar{width:4px}
-.path-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.path-item{padding:6px 9px;border-radius:6px;margin-bottom:3px;cursor:pointer;
-  font-family:var(--mono);font-size:11px;color:var(--muted);transition:all .12s;
-  display:flex;align-items:center;gap:5px;word-break:break-all;}
-.path-item:hover{background:var(--surface3);color:var(--text)}
-.pt{font-size:9px;padding:2px 5px;border-radius:4px;flex-shrink:0;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.pt-str{background:rgba(61,255,160,.12);color:var(--green)}
-.pt-num{background:rgba(74,144,255,.12);color:var(--accent2)}
-.pt-bool{background:rgba(167,139,250,.12);color:var(--purple)}
-.pt-null{background:rgba(107,130,170,.12);color:var(--muted)}
-.pt-obj{background:rgba(255,185,64,.12);color:var(--amber)}
-.pt-arr{background:rgba(255,87,87,.12);color:var(--red)}
-.path-val{color:var(--dim);font-size:10px;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;flex-shrink:0}
-
-/* json area */
-.json-area{display:flex;flex-direction:column;overflow:hidden;background:#07111f}
-.json-toolbar{display:flex;align-items:center;gap:7px;padding:7px 12px;
-  border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
-.json-path-display{font-family:var(--mono);font-size:11px;color:var(--accent2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.view-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.view-toggle button{padding:4px 10px;font-size:11px;font-family:var(--mono);
-  background:none;border:none;color:var(--muted);cursor:pointer;transition:all .14s;}
-.view-toggle button.active{background:var(--accent);color:#fff}
-
-pre{flex:1;overflow:auto;margin:0;padding:15px 17px;font-family:var(--mono);font-size:12.5px;
-  line-height:1.65;color:#8eb5f0;white-space:pre-wrap;word-break:break-all;}
-pre::-webkit-scrollbar{width:6px;height:6px}
-pre::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-.jk{color:#7ab8ff}.js{color:#3dffa0}.jn{color:#ffb940}.jb{color:#a78bfa}.jl{color:#ff5757}.jp{color:#4a90ff}
-
-/* ── SELECTION PANEL (NEW) ── */
-.sel-panel{
-  position:fixed;top:0;right:0;width:420px;height:100vh;
-  background:var(--surface);border-left:1px solid var(--border);
-  display:flex;flex-direction:column;z-index:200;
-  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
-}
-.sel-panel.open{transform:translateX(0)}
-.sel-panel-head{
-  display:flex;align-items:center;gap:10px;padding:12px 14px;
-  border-bottom:1px solid var(--border);flex-shrink:0;
-}
-.sel-panel-title{font-size:13px;font-weight:700;color:var(--text);flex:1}
-.sel-panel-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px}
-.sel-panel-close:hover{background:var(--surface3);color:var(--text)}
-.sel-items{flex:1;overflow-y:auto;padding:10px}
-.sel-items::-webkit-scrollbar{width:4px}
-.sel-items::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.sel-item{
-  display:flex;align-items:flex-start;gap:10px;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;
-  transition:all .14s;
-}
-.sel-item:hover{border-color:var(--accent2)}
-.sel-item.checked{border-color:var(--green2);background:rgba(0,201,106,.06)}
-.sel-item input[type=checkbox]{
-  width:15px;height:15px;flex-shrink:0;margin-top:1px;
-  accent-color:var(--green2);cursor:pointer;
-}
-.sel-item-body{flex:1;min-width:0}
-.sel-item-name{font-family:var(--mono);font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:3px}
-.sel-item-preview{font-family:var(--mono);font-size:10px;color:var(--dim);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sel-empty{color:var(--dim);font-size:13px;padding:20px;text-align:center;font-style:italic}
-.sel-footer{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px}
-.sel-footer-info{font-size:11px;color:var(--muted);font-family:var(--mono)}
-.sel-copy-btn{
-  background:linear-gradient(135deg,var(--green2),#3dffa0);color:#07111f;
-  border:none;border-radius:8px;padding:10px;font-family:var(--sans);
-  font-size:13px;font-weight:700;cursor:pointer;transition:all .16s;
-}
-.sel-copy-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,201,106,.4)}
-.sel-copy-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
-.sel-clear-btn{background:var(--surface3);border:1px solid var(--border2);border-radius:8px;
-  padding:8px;font-family:var(--sans);font-size:12px;color:var(--muted);cursor:pointer;}
-.sel-clear-btn:hover{color:var(--text)}
-.sel-output{flex:1;overflow:auto;padding:14px;font-family:var(--mono);font-size:11px;
-  color:var(--green);white-space:pre-wrap;word-break:break-all;background:#040a10;
-  border-top:1px solid var(--border);display:none;max-height:300px;}
-.sel-output.visible{display:block}
-
-/* sel trigger btn (floating) */
-.sel-trigger{
-  position:fixed;bottom:24px;right:24px;z-index:100;
-  background:linear-gradient(135deg,var(--accent),var(--purple));
-  color:#fff;border:none;border-radius:12px;padding:11px 18px;
-  font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;
-  box-shadow:0 4px 24px rgba(74,144,255,.4);transition:all .2s;
-  display:flex;align-items:center;gap:8px;
-}
-.sel-trigger:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(74,144,255,.5)}
-.sel-badge{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:11px}
-
-/* overlay */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;
-  opacity:0;pointer-events:none;transition:opacity .28s;}
-.overlay.open{opacity:1;pointer-events:all}
-
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);opacity:0;
-  background:var(--green2);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;
-  padding:9px 20px;border-radius:9px;transition:all .28s;pointer-events:none;z-index:999;white-space:nowrap;}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-
-@media(max-width:860px){
-  .viewer{grid-template-columns:1fr}
-  .sidebar{display:none}
-  .stat-value{font-size:14px}
-  .sel-panel{width:100vw}
-}
-</style>
 </head>
 <body>
-<div class="app">
-
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="logo">Manager API Inspector</div>
-    <div class="topbar-sub">v3.0 · Manager.io Cloud</div>
-    <div class="topbar-badge">Developer Tool</div>
-    <div class="clock" id="clock"></div>
-  </div>
-
-  <!-- Input bar -->
-  <div class="inputbar">
-    <div class="prefix-badge">/api4/</div>
-    <div class="endpoint-wrap">
-      <input id="path" type="text" value="batch-sales-invoice" placeholder="e.g. batch-customer" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="pagesize-wrap">
-      <span>Rows&nbsp;</span>
-      <input id="pagesize" type="number" value="200" min="1" max="1000" title="Number of records to fetch">
-    </div>
-    <button class="btn btn-load" onclick="loadData()">&#9654;&nbsp;Load</button>
-    <button class="btn btn-copy" onclick="copyJson()">&#128203;&nbsp;Copy JSON</button>
-    <button class="btn btn-schema" onclick="setView('schema')">&#128270;&nbsp;Schema</button>
-    <button class="btn btn-clear" onclick="clearAll()">&#10005;&nbsp;Clear</button>
-  </div>
-
-  <!-- Quick endpoints -->
-  <div class="quickbar">
-    <span class="ql">Lists</span>
-    <button class="qbtn q-l" onclick="quick('batch-customer')">customers</button>
-    <button class="qbtn q-l" onclick="quick('batch-supplier')">suppliers</button>
-    <button class="qbtn q-l" onclick="quick('batch-sales-invoice')">sales invoices</button>
-    <button class="qbtn q-l" onclick="quick('batch-purchase-invoice')">purchase invoices</button>
-    <button class="qbtn q-l" onclick="quick('batch-receipt')">receipts</button>
-    <button class="qbtn q-l" onclick="quick('batch-payment')">payments</button>
-    <button class="qbtn q-l" onclick="quick('batch-inventory-item')">inventory</button>
-    <button class="qbtn q-l" onclick="quick('batch-employee')">employees</button>
-    <button class="qbtn q-l" onclick="quick('batch-bank-or-cash-account')">bank accounts</button>
-    <button class="qbtn q-l" onclick="quick('batch-journal-entry')">journal entries</button>
-    <span class="ql" style="margin-left:8px">Summaries</span>
-    <button class="qbtn q-s" onclick="quick('batch-customer-summary')">customer summary</button>
-    <button class="qbtn q-s" onclick="quick('batch-supplier-summary')">supplier summary</button>
-    <button class="qbtn q-s" onclick="quick('batch-sales-invoice-totals-by-customer')">invoice totals/customer</button>
-    <span class="ql" style="margin-left:8px">Reports</span>
-    <button class="qbtn q-r" onclick="quickReport('aged-receivables')">aged receivables</button>
-    <button class="qbtn q-r" onclick="quickReport('aged-payables')">aged payables</button>
-    <button class="qbtn q-r" onclick="quickReport('trial-balance')">trial balance</button>
-    <button class="qbtn q-r" onclick="quickReport('profit-and-loss-statement')">P&amp;L</button>
-    <button class="qbtn q-r" onclick="quickReport('balance-sheet')">balance sheet</button>
-    <button class="qbtn q-r" onclick="quickReport('general-ledger-transactions')">general ledger</button>
-    <span class="ql" style="margin-left:8px">Meta</span>
-    <button class="qbtn q-s" onclick="quickReport('businesses')">businesses</button>
-  </div>
-
-  <!-- Total / pager bar -->
-  <div class="totalbar" id="totalbar" style="display:none">
-    <span class="total-label">Total records in business:</span>
-    <span class="total-value" id="total-count">—</span>
-    <span class="total-label" style="margin-left:16px">Showing:</span>
-    <span class="total-value" id="showing-count">—</span>
-    <span class="total-label" style="margin-left:16px">Next page token:</span>
-    <span class="total-value" id="next-token" style="font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
-    <div class="total-pager">
-      <button class="pager-btn" id="btn-prev" onclick="pagePrev()" disabled>&#8592; Prev</button>
-      <span class="page-indicator" id="page-indicator">Page 1</span>
-      <button class="pager-btn" id="btn-next" onclick="pageNext()">Next &#8594;</button>
-    </div>
-  </div>
-
-  <!-- Stats -->
-  <div class="statsbar">
-    <div class="stat"><div class="stat-label">Status</div><div class="stat-value sv-idle" id="s-status">Idle</div></div>
-    <div class="stat"><div class="stat-label">Endpoint</div><div class="stat-value sv-idle" id="s-endpoint" style="font-size:12px;padding-top:3px">—</div></div>
-    <div class="stat"><div class="stat-label">This Page</div><div class="stat-value sv-idle" id="s-items">0</div></div>
-    <div class="stat"><div class="stat-label">Total Fields</div><div class="stat-value sv-idle" id="s-keys">0</div></div>
-    <div class="stat"><div class="stat-label">Size</div><div class="stat-value sv-idle" id="s-size">0 KB</div></div>
-    <div class="stat"><div class="stat-label">Time</div><div class="stat-value sv-idle" id="s-time">— ms</div></div>
-  </div>
-
-  <!-- Viewer -->
-  <div class="viewer">
-    <div class="sidebar">
-      <div class="sidebar-head">
-        JSON Paths
-        <span class="path-count" id="path-count">0 paths</span>
-      </div>
-      <div class="sidebar-search">
-        <input type="text" id="path-search" placeholder="Filter paths…" oninput="filterPaths()">
-      </div>
-      <div class="path-list" id="path-list"></div>
-    </div>
-    <div class="json-area">
-      <div class="json-toolbar">
-        <div class="json-path-display" id="json-path-label">No data loaded — select an endpoint above</div>
-        <div class="view-toggle">
-          <button class="active" id="vt-pretty" onclick="setView('pretty')">Pretty</button>
-          <button id="vt-raw"    onclick="setView('raw')">Raw</button>
-          <button id="vt-schema" onclick="setView('schema')">Schema</button>
+    <!-- Navbar -->
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">KSL Solutions</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
         </div>
-      </div>
-      <pre id="output">Ready. Select an endpoint above or type one and press Enter.</pre>
     </div>
-  </div>
+</nav>
 
-</div>
+  <!-- Call to Action -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container text-center">
+            <h2 class="fw-bold mb-3">Start Your Free Trial Today!</h2>
+            <p class="lead mb-4">
+                Transform your business with Manager.io—customized and deployed just for you.
+            </p>
+            <a href="https://cloud.manager.io/free-trial-setup?CO6BAQ" target="_blank" class="btn btn-lg btn-warning text-dark fw-bold px-4 py-2 shadow-sm">
+                🚀 Start Free Trial
+            </a>
+        </div>
+    </section>
 
-<!-- Selection panel trigger -->
-<button class="sel-trigger" id="sel-trigger" onclick="openSelPanel()">
-  &#128203; Selected for Claude
-  <span class="sel-badge" id="sel-badge">0</span>
-</button>
+     <!-- Services Section -->
+     <section id="services" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Benefits with Our Reseller Account for Manager.io</h2>
+            <div class="row justify-content-center">
+                <!-- Free Customization Card -->
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <i class="bi bi-tools text-primary" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Free Customization</h5>
+                            <p class="card-text">
+                                Tailored solutions to perfectly fit your unique business requirements.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Dedicated Support Card -->
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <i class="bi bi-person-check text-success" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Personalized Support</h5>
+                            <p class="card-text">
+                                Receive dedicated and personalized support for seamless operations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Training Card -->
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <i class="bi bi-book-half text-warning" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Training</h5>
+                            <p class="card-text">
+                                Comprehensive training to help you get the most out of Manager.io.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Accounting Support Card -->
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <i class="bi bi-calculator text-danger" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Accounting Support</h5>
+                            <p class="card-text">
+                                Expert accounting and bookkeeping assistance for your business.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+    
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4">Contact Us</h2>
+            <p class="text-center">Get in touch for free consultation and personalized solutions for your business.</p>
+            <div class="text-center">
+                <!-- WhatsApp Button -->
+                <a href="https://wa.me/+923458696636?text=Hello%20KSL%20Solution,%20I%20would%20like%20to%20request%20a%20free%20consultation." 
+                   class="btn btn-success btn-lg" 
+                   target="_blank">
+                    <i class="bi bi-whatsapp"></i> Chat with Us on WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3">
+        <div class="container">
+            <p>&copy; 2024 KSL Solutions. All rights reserved.</p>
+        </div>
+    </footer>
 
-<!-- Overlay -->
-<div class="overlay" id="overlay" onclick="closeSelPanel()"></div>
-
-<!-- Selection panel -->
-<div class="sel-panel" id="sel-panel">
-  <div class="sel-panel-head">
-    <div class="sel-panel-title">&#128203; Saved for Claude</div>
-    <button class="sel-panel-close" onclick="closeSelPanel()">&#10005;</button>
-  </div>
-
-  <div class="sel-items" id="sel-items">
-    <div class="sel-empty">No responses saved yet.<br><br>Load any endpoint, then check the box that appears in the stats bar to save that response here.</div>
-  </div>
-
-  <div class="sel-output" id="sel-output"></div>
-
-  <div class="sel-footer">
-    <div class="sel-footer-info" id="sel-footer-info">Select responses below to include them</div>
-    <button class="sel-copy-btn" id="sel-copy-btn" onclick="copySelected()" disabled>
-      &#128203; Copy Selected JSON for Claude
-    </button>
-    <button class="sel-clear-btn" onclick="clearSelected()">Clear all saved</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ═══════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════ */
-let latestJson   = null;
-let allPaths     = [];
-let currentView  = 'pretty';
-let savedItems   = [];       // [{name, endpoint, json}]
-let pageStack    = [];       // stack of next-page URLs for prev navigation
-let currentNext  = null;
-let currentEndpoint = '';
-let currentPage  = 1;
-
-/* ═══════════════════════════════════════════
-   CLOCK
-═══════════════════════════════════════════ */
-(function tick(){
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB');
-  setTimeout(tick,1000);
-})();
-
-/* ═══════════════════════════════════════════
-   postMessage
-═══════════════════════════════════════════ */
-function pmr(msg){
-  return new Promise((resolve,reject)=>{
-    const rid = crypto.randomUUID();
-    const timer = setTimeout(()=>{
-      window.removeEventListener('message',h);
-      reject(new Error('15s timeout — is this running inside Manager?'));
-    },15000);
-    function h(e){
-      if(e.data?.type?.endsWith('-response') && e.data?.requestId===rid){
-        clearTimeout(timer);
-        window.removeEventListener('message',h);
-        resolve(e.data.body);
-      }
-    }
-    window.addEventListener('message',h);
-    window.parent.postMessage({...msg, requestId:rid},'*');
-  });
-}
-
-/* ═══════════════════════════════════════════
-   HIGHLIGHT
-═══════════════════════════════════════════ */
-function hl(json){
-  return JSON.stringify(json,null,2)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[{}\[\],])/g,m=>{
-      if(/^[{}\[\],]/.test(m)) return `<span class="jp">${m}</span>`;
-      if(/^"/.test(m)) return /:$/.test(m)?`<span class="jk">${m}</span>`:`<span class="js">${m}</span>`;
-      if(/true|false/.test(m)) return `<span class="jb">${m}</span>`;
-      if(/null/.test(m)) return `<span class="jl">${m}</span>`;
-      return `<span class="jn">${m}</span>`;
-    });
-}
-
-/* ═══════════════════════════════════════════
-   SCHEMA
-═══════════════════════════════════════════ */
-function schema(v,d=0){
-  if(v===null) return 'null';
-  if(Array.isArray(v)) return v.length?`Array(${v.length}) [\n${' '.repeat((d+1)*2)}${schema(v[0],d+1)}\n${' '.repeat(d*2)}]`:'Array(0)[]';
-  if(typeof v==='object'){
-    const lines=Object.keys(v).map(k=>`${' '.repeat((d+1)*2)}"${k}": ${schema(v[k],d+1)}`);
-    return `{\n${lines.join(',\n')}\n${' '.repeat(d*2)}}`;
-  }
-  return `<${typeof v}>`;
-}
-
-/* ═══════════════════════════════════════════
-   PATHS
-═══════════════════════════════════════════ */
-function typeTag(v){
-  if(v===null)return['null','null'];
-  if(Array.isArray(v))return['arr',`arr(${v.length})`];
-  if(typeof v==='object')return['obj','{}'];
-  if(typeof v==='boolean')return['bool',String(v)];
-  if(typeof v==='number')return['num',String(v)];
-  const s=String(v);return['str',s.length>18?s.slice(0,18)+'…':s];
-}
-function extractPaths(obj){
-  const list=[];
-  function walk(v,path){
-    if(v&&typeof v==='object'&&list.length<800){
-      for(const k of Object.keys(v).slice(0,200)){
-        const next=path?path+'.'+k:k;
-        const[type,val]=typeTag(v[k]);
-        list.push({path:next,type,val});
-        walk(v[k],next);
-      }
-    }
-  }
-  walk(obj,'');return list;
-}
-function renderPaths(list){
-  const box=document.getElementById('path-list');
-  box.innerHTML='';
-  document.getElementById('path-count').textContent=list.length+' paths';
-  list.slice(0,500).forEach(({path,type,val})=>{
-    const d=document.createElement('div');
-    d.className='path-item';
-    d.title='Click to copy: '+path;
-    d.innerHTML=`<span class="pt pt-${type}">${type}</span><span>${path}</span><span class="path-val">${val}</span>`;
-    d.onclick=()=>{navigator.clipboard.writeText(path).catch(()=>{});showToast('Copied path: '+path.split('.').pop());};
-    box.appendChild(d);
-  });
-}
-function filterPaths(){
-  const q=document.getElementById('path-search').value.toLowerCase();
-  renderPaths(q?allPaths.filter(p=>p.path.toLowerCase().includes(q)):allPaths);
-}
-
-/* ═══════════════════════════════════════════
-   STATS / HELPERS
-═══════════════════════════════════════════ */
-function countKeys(obj){let n=0;function w(v){if(v&&typeof v==='object'){for(const k in v){n++;w(v[k]);}}}w(obj);return n;}
-
-function countRecords(d){
-  if(Array.isArray(d)) return d.length;
-  if(d&&typeof d==='object'){
-    if(Array.isArray(d.items)) return d.items.length;
-    for(const k of Object.keys(d)){if(Array.isArray(d[k]))return d[k].length;}
-  }
-  return 1;
-}
-
-// Extract total count from response (Manager puts it in different places)
-function extractTotal(d){
-  if(!d||typeof d!=='object') return null;
-  if(typeof d.totalCount==='number') return d.totalCount;
-  if(typeof d.total==='number') return d.total;
-  if(typeof d.count==='number') return d.count;
-  // Some responses have it in _links or metadata
-  if(d._metadata&&typeof d._metadata.totalCount==='number') return d._metadata.totalCount;
-  return null;
-}
-
-// Extract next page link from response
-function extractNext(d){
-  if(!d||typeof d!=='object') return null;
-  if(d._links&&d._links.next&&d._links.next.href) return d._links.next.href;
-  if(d.nextPageToken) return d.nextPageToken;
-  return null;
-}
-
-function setStat(id,val,cls){
-  const el=document.getElementById(id);
-  if(cls) el.className='stat-value '+cls;
-  el.textContent=val;
-}
-
-/* ═══════════════════════════════════════════
-   VIEWS
-═══════════════════════════════════════════ */
-function setView(v){
-  currentView=v;
-  ['pretty','raw','schema'].forEach(n=>document.getElementById('vt-'+n).classList.toggle('active',n===v));
-  if(latestJson) render();
-}
-function render(){
-  const pre=document.getElementById('output');
-  if(currentView==='pretty') pre.innerHTML=hl(latestJson);
-  else if(currentView==='raw') pre.textContent=JSON.stringify(latestJson);
-  else pre.textContent=schema(latestJson);
-}
-
-/* ═══════════════════════════════════════════
-   LOAD DATA
-═══════════════════════════════════════════ */
-async function doLoad(fullPath, isPageNav=false){
-  document.getElementById('json-path-label').textContent = 'GET '+fullPath;
-  setStat('s-status','Loading…','sv-load');
-
-  const t0=performance.now();
-  try{
-    const data = await pmr({type:'api-request',method:'GET',path:fullPath});
-    const ms   = Math.round(performance.now()-t0);
-
-    latestJson = data;
-    allPaths   = extractPaths(data);
-
-    render();
-    renderPaths(allPaths);
-
-    const size    = (JSON.stringify(data).length/1024).toFixed(1);
-    const records = countRecords(data);
-    const total   = extractTotal(data);
-    const nextHref= extractNext(data);
-    currentNext   = nextHref;
-
-    setStat('s-status','200 OK','sv-ok');
-    setStat('s-items', records);
-    setStat('s-keys',  countKeys(data));
-    setStat('s-size',  size+' KB');
-    setStat('s-time',  ms+' ms');
-
-    // Total bar
-    const tbar = document.getElementById('totalbar');
-    tbar.style.display='flex';
-
-    document.getElementById('total-count').textContent =
-      total!==null ? total.toLocaleString()+' total' : 'unknown (API did not return total)';
-
-    document.getElementById('showing-count').textContent =
-      records+' records (page size: '+document.getElementById('pagesize').value+')';
-
-    const nextEl = document.getElementById('next-token');
-    nextEl.textContent = nextHref ? nextHref.slice(0,60)+'…' : 'No more pages';
-
-    document.getElementById('page-indicator').textContent = 'Page '+currentPage;
-    document.getElementById('btn-prev').disabled = (currentPage<=1);
-    document.getElementById('btn-next').disabled = !nextHref;
-
-    // Save to clipboard-able item (add "Save" button in toolbar)
-    renderSaveButton(currentEndpoint, data);
-
-  }catch(e){
-    setStat('s-status','Error','sv-err');
-    document.getElementById('output').textContent='Error: '+e.message;
-  }
-}
-
-async function loadData(){
-  let raw = document.getElementById('path').value.trim();
-  if(!raw) return;
-  const ps = parseInt(document.getElementById('pagesize').value)||200;
-
-  raw = raw.replace(/^\/+/,'').replace(/^api4\//,'');
-  let fullPath = '/api4/'+raw;
-  if(!fullPath.includes('?')) fullPath += '?PageSize='+ps;
-
-  currentEndpoint = raw;
-  setStat('s-endpoint', raw);
-  currentPage  = 1;
-  pageStack    = [];
-  currentNext  = null;
-
-  await doLoad(fullPath);
-}
-
-/* ═══════════════════════════════════════════
-   PAGING
-═══════════════════════════════════════════ */
-async function pageNext(){
-  if(!currentNext) return;
-  pageStack.push(currentNext);
-  currentPage++;
-  await doLoad(currentNext, true);
-}
-async function pagePrev(){
-  if(currentPage<=1) return;
-  pageStack.pop();
-  currentPage--;
-  const prev = pageStack.length ? pageStack[pageStack.length-1] : null;
-  if(currentPage===1){
-    await loadData(); // reload from start
-  } else {
-    await doLoad(prev, true);
-  }
-}
-
-/* ═══════════════════════════════════════════
-   QUICK BUTTONS
-   Lists  → batch-* with PageSize
-   Reports→ no PageSize (they return full data)
-═══════════════════════════════════════════ */
-function quick(ep){
-  document.getElementById('path').value = ep;
-  loadData();
-}
-function quickReport(ep){
-  // Reports don't use batch- prefix and don't take PageSize
-  document.getElementById('path').value = ep;
-  // Temporarily set PageSize to nothing by passing the endpoint without ?PageSize
-  currentEndpoint = ep;
-  setStat('s-endpoint', ep);
-  currentPage=1; pageStack=[]; currentNext=null;
-  const fullPath = '/api4/'+ep;  // no PageSize for reports
-  document.getElementById('json-path-label').textContent='GET '+fullPath;
-  setStat('s-status','Loading…','sv-load');
-  const t0=performance.now();
-  pmr({type:'api-request',method:'GET',path:fullPath}).then(data=>{
-    const ms=Math.round(performance.now()-t0);
-    latestJson=data; allPaths=extractPaths(data);
-    render(); renderPaths(allPaths);
-    const size=(JSON.stringify(data).length/1024).toFixed(1);
-    setStat('s-status','200 OK','sv-ok');
-    setStat('s-items',countRecords(data));
-    setStat('s-keys',countKeys(data));
-    setStat('s-size',size+' KB');
-    setStat('s-time',ms+' ms');
-    // Reports: hide pager, show simple total
-    const tbar=document.getElementById('totalbar');
-    tbar.style.display='flex';
-    document.getElementById('total-count').textContent='Report (single response)';
-    document.getElementById('showing-count').textContent=countRecords(data)+' rows';
-    document.getElementById('next-token').textContent='—';
-    document.getElementById('btn-prev').disabled=true;
-    document.getElementById('btn-next').disabled=true;
-    renderSaveButton(ep, data);
-  }).catch(e=>{
-    setStat('s-status','Error','sv-err');
-    document.getElementById('output').textContent='Error: '+e.message;
-  });
-}
-
-/* ═══════════════════════════════════════════
-   SAVE BUTTON IN TOOLBAR
-═══════════════════════════════════════════ */
-function renderSaveButton(ep, data){
-  // Remove old save btn if present
-  const old=document.getElementById('toolbar-save');
-  if(old) old.remove();
-
-  const btn=document.createElement('button');
-  btn.id='toolbar-save';
-  btn.style.cssText='background:rgba(61,255,160,.15);border:1px solid rgba(61,255,160,.3);border-radius:6px;color:#3dffa0;font-family:var(--mono);font-size:11px;padding:4px 10px;cursor:pointer;white-space:nowrap;transition:all .14s;margin-left:4px;';
-  btn.textContent='+ Save for Claude';
-  btn.onclick=()=>saveItem(ep, data, btn);
-  document.querySelector('.json-toolbar').appendChild(btn);
-}
-
-/* ═══════════════════════════════════════════
-   SAVE / SELECTION PANEL
-═══════════════════════════════════════════ */
-function saveItem(ep, data, btn){
-  // Check if already saved
-  if(savedItems.find(i=>i.name===ep)){
-    showToast('Already saved: '+ep); return;
-  }
-  savedItems.push({name:ep, json:data, selected:false});
-  btn.textContent='✓ Saved';
-  btn.style.background='rgba(61,255,160,.3)';
-  btn.disabled=true;
-  updateSelBadge();
-  renderSelItems();
-  showToast('Saved "'+ ep +'" — click the panel to select');
-}
-
-function updateSelBadge(){
-  const checked = savedItems.filter(i=>i.selected).length;
-  document.getElementById('sel-badge').textContent = savedItems.length;
-  const btn = document.getElementById('sel-copy-btn');
-  btn.disabled = checked===0;
-  document.getElementById('sel-footer-info').textContent =
-    checked ? checked+' of '+savedItems.length+' selected for copy' : 'Tick responses to include them in the copy';
-}
-
-function renderSelItems(){
-  const box = document.getElementById('sel-items');
-  if(!savedItems.length){
-    box.innerHTML='<div class="sel-empty">No responses saved yet.<br><br>Load an endpoint, then click "+ Save for Claude" in the toolbar.</div>';
-    return;
-  }
-  box.innerHTML='';
-  savedItems.forEach((item,i)=>{
-    const preview = JSON.stringify(item.json).slice(0,120)+'…';
-    const div=document.createElement('div');
-    div.className='sel-item'+(item.selected?' checked':'');
-    div.innerHTML=`
-      <input type="checkbox" ${item.selected?'checked':''} onchange="toggleSel(${i},this)">
-      <div class="sel-item-body">
-        <div class="sel-item-name">/api4/${item.name}</div>
-        <div class="sel-item-preview">${preview}</div>
-      </div>
-      <button onclick="removeSel(${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px" title="Remove">&#10005;</button>
-    `;
-    box.appendChild(div);
-  });
-}
-
-function toggleSel(i, cb){
-  savedItems[i].selected = cb.checked;
-  cb.closest('.sel-item').classList.toggle('checked', cb.checked);
-  updateSelBadge();
-
-  // Show preview of selected JSON
-  const selected = savedItems.filter(x=>x.selected);
-  const outEl = document.getElementById('sel-output');
-  if(selected.length){
-    outEl.classList.add('visible');
-    const combined = {};
-    selected.forEach(s=>combined[s.name]=s.json);
-    outEl.textContent = JSON.stringify(combined, null, 2).slice(0,3000)+(JSON.stringify(combined).length>3000?'\n\n… (truncated preview — full JSON will be copied)':'');
-  } else {
-    outEl.classList.remove('visible');
-  }
-}
-
-function removeSel(i){
-  savedItems.splice(i,1);
-  renderSelItems();
-  updateSelBadge();
-}
-
-function clearSelected(){
-  savedItems=[];
-  renderSelItems();
-  updateSelBadge();
-  document.getElementById('sel-output').classList.remove('visible');
-  // Re-enable save buttons
-  document.querySelectorAll('#toolbar-save').forEach(b=>{b.textContent='+ Save for Claude';b.disabled=false;b.style.background='rgba(61,255,160,.15)';});
-}
-
-function copySelected(){
-  const selected = savedItems.filter(i=>i.selected);
-  if(!selected.length){showToast('Nothing selected');return;}
-  const combined = {};
-  selected.forEach(s=>combined[s.name]=s.json);
-  navigator.clipboard.writeText(JSON.stringify(combined,null,2)).then(()=>{
-    showToast('Copied '+selected.length+' response(s) — paste to Claude!');
-    closeSelPanel();
-  });
-}
-
-function openSelPanel(){
-  document.getElementById('sel-panel').classList.add('open');
-  document.getElementById('overlay').classList.add('open');
-  renderSelItems();
-  updateSelBadge();
-}
-function closeSelPanel(){
-  document.getElementById('sel-panel').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
-}
-
-/* ═══════════════════════════════════════════
-   COPY / CLEAR
-═══════════════════════════════════════════ */
-function copyJson(){
-  if(!latestJson){showToast('Nothing to copy');return;}
-  navigator.clipboard.writeText(JSON.stringify(latestJson,null,2))
-    .then(()=>showToast('Full JSON copied — paste to Claude'));
-}
-
-function clearAll(){
-  latestJson=null; allPaths=[];
-  document.getElementById('output').textContent='Cleared.';
-  document.getElementById('path-list').innerHTML='';
-  document.getElementById('path-count').textContent='0 paths';
-  document.getElementById('json-path-label').textContent='No data loaded';
-  document.getElementById('path-search').value='';
-  document.getElementById('totalbar').style.display='none';
-  ['s-status','s-items','s-keys','s-size','s-time'].forEach(id=>
-    setStat(id,id==='s-status'?'Idle':id==='s-size'?'0 KB':id==='s-time'?'— ms':'0','sv-idle'));
-  setStat('s-endpoint','—','sv-idle');
-  const old=document.getElementById('toolbar-save');if(old)old.remove();
-}
-
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
-}
-
-/* ═══════════════════════════════════════════
-   KEYBOARD
-═══════════════════════════════════════════ */
-['path','pagesize'].forEach(id=>
-  document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')loadData();})
-);
-</script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
